@@ -1,66 +1,20 @@
 import { Gantt } from './node_modules/@bryntum/gantt/gantt.module.js';
 import { getTasksFromMonday, addTaskToMonday, updateTaskOnMonday, addParentTaskToMonday, deleteTask } from './graph.js';
 
+var isAppended = false;
+
 getTasksFromMonday();
 
 
-function createGantt(tasks) {
+function createGantt(event_list) {
 
-    var event_list = [];
-    var column_id_list = {child: tasks.data.boards[0].items[0].column_values[2].id, parent: tasks.data.boards[1].items[0].column_values[3].id};
-
-    // loop through the parent items
-    for (var j = 0; j < tasks.data.boards[1].items.length; j++) {
-        event_list.push({
-            id: tasks.data.boards[1].items[j].id,
-            monday_id       : tasks.data.boards[1].items[j].id,
-            name     : tasks.data.boards[1].items[j].name,
-            startDate : tasks.data.boards[1].items[j].column_values[3].text.slice(0,10),
-            endDate : tasks.data.boards[1].items[j].column_values[3].text.slice(13,23),
-            expanded : false,
-            children : [],
-            board_id: tasks.data.boards[1].id,
-            column_values: tasks.data.boards[1].items[j].column_values,
-        });
-    }
-
-    // loop through the subitems
-    for (var j = 0; j < tasks.data.boards[0].items.length; j++) {
-        if(tasks.data.boards[0].items[j].parent_item != null){
-
-            // get the parent id
-            var parent_id = tasks.data.boards[0].items[j].parent_item.id;
-            // get the child id
-            var child_id = tasks.data.boards[0].items[j].id;
-            // loop through the event list
-            for (var k = 0; k < event_list.length; k++) {
-
-                // if the parent id matches the event id
-                if (parent_id == event_list[k].id ) {
-
-                    // add the child to the parent
-                    event_list[k].children.push({
-                        id : child_id,
-                        monday_id : child_id,
-                        name : tasks.data.boards[0].items[j].name,
-                        startDate : tasks.data.boards[0].items[j].column_values[2].text.slice(0,10),
-                        endDate : tasks.data.boards[0].items[j].column_values[2].text.slice(13,23),
-                        board_id: tasks.data.boards[0].id,
-                        column_values: tasks.data.boards[0].items[j].column_values,
-                        manuallyScheduled: true
-                    });
-                    event_list[k].expanded = true;
-                    event_list[k].endDate = tasks.data.boards[0].items[j].column_values[2].text.slice(13,23);
-                }
-            }
-        }
-    }
+    var column_id_list = {child: event_list[0].children[0].column_values[2].id, parent: event_list[0].column_values[3].id};
+    var parent_board_id = event_list[0].board_id;
 
     var gantt = new Gantt({
-        appendTo : document.body,
-    
-        startDate : new Date(2022, 10, 1),
-        endDate   : new Date(2023, 10, 20),
+        // startDate is today and endDate is 1 year from today
+        startDate: new Date(),
+        endDate: new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate()),
     
         listeners : {
             dataChange: function (event) {
@@ -72,12 +26,62 @@ function createGantt(tasks) {
         },
     
         column_ids: column_id_list,
-        board_id: tasks.data.boards[1].id, 
+        board_id: parent_board_id, 
     
         columns : [
             { type : 'name', width : 160 }
         ]
     });
+
+    if(isAppended == false){
+        gantt.appendTo = document.body;
+        isAppended = true;
+    }
+}
+
+function updateParentList(results, event_list) {
+    var parent_board = results.data.boards[1];
+    for (var j = 0; j < parent_board.items.length; j++) {
+        event_list.push({
+            id: parent_board.items[j].id,
+            monday_id       : parent_board.items[j].id,
+            name     : parent_board.items[j].name,
+            startDate : parent_board.items[j].column_values[3].text.slice(0,10),
+            endDate : parent_board.items[j].column_values[3].text.slice(13,23),
+            expanded : false,
+            children : [],
+            board_id: parent_board.id,
+            column_values: parent_board.items[j].column_values,
+        });
+    }
+    return event_list;
+}
+
+function updateChildrenList(results, event_list) {
+    var child_board = results.data.boards[0];
+    for (var j = 0; j < child_board.items.length; j++) {
+        if(child_board.items[j].parent_item != null){
+            var parent_id = child_board.items[j].parent_item.id;
+            var child_id = child_board.items[j].id;
+            for (var k = 0; k < event_list.length; k++) {
+                if (parent_id == event_list[k].id ) {
+                    event_list[k].children.push({
+                        id : child_id,
+                        monday_id : child_id,
+                        name : child_board.items[j].name,
+                        startDate : child_board.items[j].column_values[2].text.slice(0,10),
+                        endDate : child_board.items[j].column_values[2].text.slice(13,23),
+                        board_id: child_board.id,
+                        column_values: child_board.items[j].column_values,
+                        manuallyScheduled: true
+                    });
+                    event_list[k].expanded = true;
+                    event_list[k].endDate = child_board.items[j].column_values[2].text.slice(13,23);
+                }
+            }
+        }
+    }
+    return event_list;
 }
 
 function updateMonday(event) {
@@ -120,4 +124,4 @@ function updateMonday(event) {
     }
 }
 
-export { createGantt };
+export { createGantt, updateParentList, updateChildrenList };

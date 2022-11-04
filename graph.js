@@ -1,4 +1,4 @@
-import { createGantt } from "./main.js";
+import { createGantt, updateChildrenList, updateParentList } from "./main.js";
 
 function getTasksFromMonday() {
   let query = '{boards(limit:2) { name id description items { name id parent_item{id} column_values{ title id type text } } } }';
@@ -17,7 +17,10 @@ function getTasksFromMonday() {
       return res;
   })
     .then(res => {
-      createGantt(res); 
+      var event_list = [];
+      event_list = updateParentList(res, event_list);
+      event_list = updateChildrenList(res, event_list);
+      createGantt(event_list); 
     });  
 }
 
