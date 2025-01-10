@@ -1,12 +1,34 @@
 import { createGantt, updateChildrenList, updateParentList } from "./main.js";
 
 function getTasksFromMonday() {
-  let query = '{boards(limit:2) { name id description items { name id parent_item{id} column_values{ title id type text } } } }';
-  var response = fetch ("https://api.monday.com/v2", {
+  const query = `{
+      boards(limit: 2) {
+      id
+      items_page {
+        items {
+          id
+          name
+          parent_item{id}
+          column_values {
+            id
+            text
+            value
+            column {
+              title
+              settings_str
+            }
+          }
+        }
+      }
+    }
+  }`;
+
+  const response = fetch ("https://api.monday.com/v2", {
     method: 'post',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization' : '<your-access-token>'
+      'Authorization' : import.meta.env.VITE_MONDAY_ACCESS_TOKEN,
+      'API-Version' : '2024-10'
     },
     body: JSON.stringify({
       'query' : query
@@ -17,26 +39,26 @@ function getTasksFromMonday() {
       return res;
   })
     .then(res => {
-      var event_list = [];
-      event_list = updateParentList(res, event_list);
-      event_list = updateChildrenList(res, event_list);
-      createGantt(event_list); 
+      let eventList = [];
+      eventList = updateParentList(res, eventList);
+      eventList = updateChildrenList(res, eventList);
+      createGantt(eventList); 
     });  
 }
 
 function addParentTaskToMonday(event, parent_name, parent_start, parent_end) {
-  
     // add a parent task to monday.com with the given parameters
-    var column_values = `{\"${event.source.column_ids.parent}\" : {\"from\" : \"${parent_start}\", \"to\": \"${parent_end}\"}}`;
+    let column_values = `{\"${event.source.column_ids.parent}\" : {\"from\" : \"${parent_start}\", \"to\": \"${parent_end}\"}}`;
     column_values = JSON.stringify(column_values);
   
-    let query = `mutation{ create_item (board_id: ${event.source.board_id}, item_name: \"${parent_name}\", create_labels_if_missing: true, column_values: ${column_values}){ id board{id} column_values{title id type text } }}`;
+    let query = `mutation{ create_item (board_id: ${event.source.board_id}, item_name: \"${parent_name}\", create_labels_if_missing: true, column_values: ${column_values}){ id board{id} column_values{id type text } }}`;
   
-    var response = fetch ("https://api.monday.com/v2", {
+    const response = fetch ("https://api.monday.com/v2", {
       method: 'post',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization' : '<your-access-token>'
+        'Authorization' : import.meta.env.VITE_MONDAY_ACCESS_TOKEN,
+        'API-Version' : '2024-10'
       },
       body: JSON.stringify({
         'query' : query
@@ -47,27 +69,28 @@ function addParentTaskToMonday(event, parent_name, parent_start, parent_end) {
     return res;
     })
     .then(res => {  
-    console.log(res);
-    event.records[0]._data.monday_id = res.data.create_item.id;
-    event.records[0]._data.board_id = res.data.create_item.board.id;
-    event.records[0]._data.column_values = res.data.create_item.column_values;
-    event.records[0]._data.manuallyScheduled = true;
+      event.records[0].data.monday_id = res.data.create_item.id;
+      event.records[0].data.board_id = res.data.create_item.board.id;
+      event.records[0].data.column_values = res.data.create_item.column_values;
+      event.records[0].data.manuallyScheduled = true;
     })
 }
 
 function addTaskToMonday(event, parent_id, child_name, child_start, child_end) {
 
+    console.log('event.source.column_ids: ', event.source.column_ids)
     // add a task to monday.com with the given parameters
-    var column_values = `{\"${event.source.column_ids.child}\" : {\"from\" : \"${child_start}\", \"to\": \"${child_end}\"}}`;
+    let column_values = `{\"${event.source.column_ids.child}\" : {\"from\" : \"${child_start}\", \"to\": \"${child_end}\"}}`;
     column_values = JSON.stringify(column_values);
     
-    let query = `mutation{ create_subitem (parent_item_id: ${parent_id}, item_name: \"${child_name}\", create_labels_if_missing: true, column_values: ${column_values}){ id board{id} parent_item{id} column_values{title id type text } }}`;
+    let query = `mutation{ create_subitem (parent_item_id: ${parent_id}, item_name: \"${child_name}\", create_labels_if_missing: true, column_values: ${column_values}){ id board{id} parent_item{id} column_values{ id type text } }}`;
     
-    var response = fetch ("https://api.monday.com/v2", {
+    const response = fetch ("https://api.monday.com/v2", {
       method: 'post',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization' : '<your-access-token>'
+        'Authorization' : import.meta.env.VITE_MONDAY_ACCESS_TOKEN,
+        'API-Version' : '2024-10'
       },
       body: JSON.stringify({
         'query' : query
@@ -78,11 +101,11 @@ function addTaskToMonday(event, parent_id, child_name, child_start, child_end) {
     return res;
     })
     .then(res => {
-    event.records[0]._data.monday_id = res.data.create_subitem.id;
-    event.records[0]._data.board_id = res.data.create_subitem.board.id;
-    event.records[0]._data.parentId = res.data.create_subitem.parent_item.id;
-    event.records[0]._data.column_values = res.data.create_subitem.column_values;
-    event.records[0]._data.manuallyScheduled = true; 
+      event.records[0].data.monday_id = res.data.create_subitem.id;
+      event.records[0].data.board_id = res.data.create_subitem.board.id;
+      event.records[0].data.parentId = res.data.create_subitem.parent_item.id;
+      event.records[0].data.column_values = res.data.create_subitem.column_values;
+      event.records[0].data.manuallyScheduled = true; 
     }
     );
 }
@@ -98,11 +121,12 @@ function updateTaskOnMonday(board_id, column_id, child_id, child_name, child_sta
     
     let query = `mutation{ change_multiple_column_values (board_id: ${board_id}, item_id: ${child_id}, column_values: ${column_values}){ id }}`;
     
-    var response = fetch ("https://api.monday.com/v2", {
+    const response = fetch ("https://api.monday.com/v2", {
       method: 'post',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization' : '<your-access-token>'
+        'Authorization' : import.meta.env.VITE_MONDAY_ACCESS_TOKEN,
+        'API-Version' : '2024-10'
       },
       body: JSON.stringify({
         'query' : query
@@ -112,26 +136,24 @@ function updateTaskOnMonday(board_id, column_id, child_id, child_name, child_sta
       let res = result.json();
       return res;
     })
-    .then(res => {
-      console.log(res);
-    })
-  }
+}
 
-  function deleteTask(id) {
+function deleteTask(id) {
+
+  // delete a task on monday.com with the given parameters
+  let query = `mutation{ delete_item (item_id: ${id}){ id }}`;
   
-    // delete a task on monday.com with the given parameters
-    let query = `mutation{ delete_item (item_id: ${id}){ id }}`;
-    
-    var response = fetch ("https://api.monday.com/v2", {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization' : '<your-access-token>'
-      },
-      body: JSON.stringify({
-        'query' : query
-      })
+  const response = fetch ("https://api.monday.com/v2", {
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization' : import.meta.env.VITE_MONDAY_ACCESS_TOKEN,
+      'API-Version' : '2024-10'
+    },
+    body: JSON.stringify({
+      'query' : query
     })
-  }
+  })
+}
 
-  export { getTasksFromMonday, addTaskToMonday, addParentTaskToMonday, updateTaskOnMonday, deleteTask };
+export { getTasksFromMonday, addTaskToMonday, addParentTaskToMonday, updateTaskOnMonday, deleteTask };
