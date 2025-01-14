@@ -1,6 +1,7 @@
 import { Gantt } from './node_modules/@bryntum/gantt/gantt.module.js';
 import { getTasksFromMonday, addTaskToMonday, updateTaskOnMonday, addParentTaskToMonday, deleteTask } from './graph.js';
 
+const accessToken = import.meta.env.VITE_MONDAY_ACCESS_TOKEN
 let isAppended = false;
 
 getTasksFromMonday();
@@ -133,4 +134,4 @@ function updateMonday(event) {
     }
 }
 
-export { createGantt, updateParentList, updateChildrenList };
+export { createGantt, updateParentList, updateChildrenList, accessToken };

@@ -1,4 +1,4 @@
-import { createGantt, updateChildrenList, updateParentList } from "./main.js";
+import { createGantt, updateChildrenList, updateParentList, accessToken } from "./main.js";
 
 function getTasksFromMonday() {
   const query = `{
@@ -27,7 +27,7 @@ function getTasksFromMonday() {
     method: 'post',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization' : import.meta.env.VITE_MONDAY_ACCESS_TOKEN,
+      'Authorization' : accessToken,
       'API-Version' : '2024-10'
     },
     body: JSON.stringify({
@@ -57,7 +57,7 @@ function addParentTaskToMonday(event, parent_name, parent_start, parent_end) {
       method: 'post',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization' : import.meta.env.VITE_MONDAY_ACCESS_TOKEN,
+        'Authorization' : accessToken,
         'API-Version' : '2024-10'
       },
       body: JSON.stringify({
@@ -89,7 +89,7 @@ function addTaskToMonday(event, parent_id, child_name, child_start, child_end) {
       method: 'post',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization' : import.meta.env.VITE_MONDAY_ACCESS_TOKEN,
+        'Authorization' : accessToken,
         'API-Version' : '2024-10'
       },
       body: JSON.stringify({
@@ -125,7 +125,7 @@ function updateTaskOnMonday(board_id, column_id, child_id, child_name, child_sta
       method: 'post',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization' : import.meta.env.VITE_MONDAY_ACCESS_TOKEN,
+        'Authorization' : accessToken,
         'API-Version' : '2024-10'
       },
       body: JSON.stringify({
@@ -147,7 +147,7 @@ function deleteTask(id) {
     method: 'post',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization' : import.meta.env.VITE_MONDAY_ACCESS_TOKEN,
+      'Authorization' : accessToken,
       'API-Version' : '2024-10'
     },
     body: JSON.stringify({
