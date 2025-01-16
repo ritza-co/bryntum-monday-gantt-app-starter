@@ -1,10 +1,8 @@
-# How to connect and sync a Bryntum Gantt to Monday.com
+# How to connect and sync Bryntum Gantt to monday.com
 
-The code for the complete app is on the "complete-gantt" branch. Refer to the [How to connect and sync Bryntum Gantt to monday.com](https://bryntum.com/blog/how-to-connect-and-sync-bryntum-gantt-to-monday-com/) post for a full guide.
-
+The code for the complete app is on the `complete-gantt` branch. The full guide is available on the Bryntum blog: [How to connect and sync Bryntum Gantt to monday.com](https://bryntum.com/blog/how-to-connect-and-sync-bryntum-gantt-to-monday-com/)
 
 ## Getting Started
-
 
 Create a `.env` file in the root folder of your project and add your monday.com access token to the following environmental variable:
 
@@ -18,8 +16,7 @@ Install the Vite dev dependency by running the following command:
 npm install
 ```
 
-
-Run the dev server using: 
+Run the dev server as follows: 
 
 ```bash
 npm run dev
