@@ -4,7 +4,7 @@ The code for the complete app is on the `complete-gantt` branch. The full guide 
 
 ## Getting Started
 
-Create a `.env` file in the root folder of your project and add your monday.com access token to the following environmental variable:
+Create a `.env` file in the root folder of your project and add your monday.com access token to the following environment variable:
 
 ```
 VITE_MONDAY_ACCESS_TOKEN=
