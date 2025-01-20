@@ -1,6 +1,6 @@
 # How to connect and sync Bryntum Gantt to monday.com
 
-The code for the complete app is on the `complete-gantt` branch. The full guide is available on the Bryntum blog: [How to connect and sync Bryntum Gantt to monday.com](https://bryntum.com/blog/how-to-connect-and-sync-bryntum-gantt-to-monday-com/)
+The code for the complete app is on the `complete-gantt` branch. The full guide is available on the Bryntum blog: [How to connect and sync Bryntum Gantt to monday.com].(https://bryntum.com/blog/how-to-connect-and-sync-bryntum-gantt-to-monday-com/)
 
 ## Getting Started
 
